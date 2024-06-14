@@ -46,10 +46,38 @@ module.exports = app;
 const express = require('express');
 const app = express();
 const port = 3000
+const { Client } = require('pg');
+
+// Create a new PostgreSQL client instance
+const client = new Client({
+  user: 'backend_test_4ihd_user',
+  host: 'dpg-cpm0plqj1k6c739u24i0-a.frankfurt-postgres.render.com',
+  database: 'test1',
+  password: 'ocJ5dKDmjHGVplC6Ltm2hRv5twv7DCda',
+  port: 5432,
+  ssl: true
+});
+
+// Connect to PostgreSQL
+client.connect()
+    .then(() => console.log('Connected to PostgreSQL'))
+    .catch(err => console.error('Connection error', err.stack));
+
+
+let result
+client.query("SELECT * FROM testTable", (err, res) => {
+  if (!err){
+    console.log('PostgreSQL connected:', res.rows);
+    result = res.rows;
+  }else{
+    console.log("error")
+  }
+  client.end();
+});
 
 app.listen(port,()=>{
   console.log(`App running on port ${port}`);
 })
 app.get('/users',(req,res) => {
-  res.json({name:"Abiy"})
+  res.json({results:result}).status(200)
 })
