@@ -1,3 +1,4 @@
+/*
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -38,4 +39,17 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+
 module.exports = app;
+*/
+
+const express = require('express');
+const app = express();
+const port = 3000
+
+app.listen(port,()=>{
+  console.log(`App running on port ${port}`);
+})
+app.get('/users',(req,res) => {
+  res.json({name:"Abiy"})
+})
