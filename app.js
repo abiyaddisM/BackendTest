@@ -1,83 +1,41 @@
-/*
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-
-var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-
-module.exports = app;
-*/
-
 const express = require('express');
+const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+
 const app = express();
-const port = 3000
-const { Client } = require('pg');
+const port = 3000;
 
-// Create a new PostgreSQL client instance
-const client = new Client({
-  user: 'backend_test_4ihd_user',
-  host: 'dpg-cpm0plqj1k6c739u24i0-a.frankfurt-postgres.render.com',
-  database: 'test1',
-  password: 'ocJ5dKDmjHGVplC6Ltm2hRv5twv7DCda',
-  port: 5432,
-  ssl: true
-});
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 
-// Connect to PostgreSQL
-client.connect()
-    .then(() => console.log('Connected to PostgreSQL'))
-    .catch(err => console.error('Connection error', err.stack));
+// Secret key for JWT
+const jwtSecretKey = 'your_secret_key';
 
+// Mock user credentials (replace with your actual authentication logic)
+const users = [
+  { id: 1, email: 'user1@example.com', password: 'password1' },
+  { id: 2, email: 'user2@example.com', password: 'password2' }
+];
 
-let result
-client.query("SELECT * FROM testTable", (err, res) => {
-  if (!err){
-    console.log('PostgreSQL connected:', res.rows);
-    result = res.rows;
-  }else{
-    console.log("error")
+// POST /api/authenticate endpoint
+app.post('/api/authenticate', (req, res) => {
+  const { email, password } = req.body;
+
+  // Find user by credentials
+  const user = users.find(u => u.email === email && u.password === password);
+
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Invalid username and/or password' });
   }
-  client.end();
+
+  // Generate JWT token
+  const token = jwt.sign({ sub: user.id, email: user.email }, jwtSecretKey, { expiresIn: '1h' });
+
+  // Return token
+  res.status(200).json({ success: true, token });
 });
 
-app.listen(port,()=>{
-  console.log(`App running on port ${port}`);
-})
-app.get('/users',(req,res) => {
-  res.json({results:result}).status(200)
-})
+// Start server
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
